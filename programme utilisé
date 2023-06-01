@@ -1,0 +1,155 @@
+#Musique LA :
+% Génération de la note LA
+frequence = 440; % Fréquence du LA en Hz
+duree = 2; % Durée de la note en secondes
+fs = 16000; % Taux d'échantillonnage en Hz
+t = 0:1/fs:duree; % Vecteur temporel
+
+% Génération du signal sinusoïdal
+note = sin(2*pi*frequence*t);
+
+% Lecture du signal sonore
+sound(note, fs);
+
+
+
+#Musique au claire de la lune : 
+% Fréquences des notes de la mélodie (en Hz)
+frequences = [262, 0, 262, 0, 262, 0, 294, 0, 330, 0, 294, 0, 262, 0, 330, 0, 294, 0, 294, 0, 262, 0, 262, 0, 262, 0, 262, 0, 294, 0, 330, 0, 294, 0, 262, 0, 330, 0, 294, 0, 294, 0, 262, 0, 294, 0, 294, 0, 294, 0, 294, 0, 220, 0, 220, 0, 294, 0, 262, 0, 247, 0, 220, 0, 196, 0, 262, 0, 262, 0, 262, 0, 294, 0, 330, 0, 294, 0, 262, 0, 330, 0, 294, 0, 294, 0, 262];
+
+% Durées des notes en secondes
+duree = [0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.6, 0.05, 0.6, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 1, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.6, 0.05, 0.6, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 1, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.6, 0.05, 0.6, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 1, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.6, 0.05, 0.6, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 1, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.6, 0.05, 0.6, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 0.4, 0.05, 1];
+
+% Durée totale du son
+totalDuree = sum(duree);
+
+% Échantillonnage
+fs = 16000; % Fréquence d'échantillonnage en Hz
+t = 0:1/fs:totalDuree; % Vecteur de temps
+
+% Génération du signal sonore
+signal = zeros(size(t));
+
+index = 1;
+for i = 1:length(frequences)
+    % Génération d'une sinusoïde à la fréquence courante
+    note = sin(2*pi*frequences(i)*t(index:index+round(duree(i)*fs)));
+
+    % Ajout de la note au signal global 
+    signal(index:index+round(duree(i)*fs)) = note;
+
+    index = index + round(duree(i)*fs);
+end
+
+% Normalisation du signal pour éviter les distorsions
+signal = signal / max(abs(signal));
+
+% Lecture du signal sonore
+sound(signal, fs);
+
+filename = 'Auclairdelalune.wav';
+audiowrite(filename, signal, fs);
+disp ('Enregistré en WAV');
+clear y Fs
+
+#Pour allumer toutes les leds :
+void setup() {
+pinMode(2, OUTPUT);
+pinMode(3, OUTPUT);
+pinMode(4, OUTPUT);
+pinMode(5, OUTPUT);
+pinMode(6, OUTPUT);
+pinMode(7, OUTPUT);
+pinMode(8, OUTPUT);
+pinMode(9, OUTPUT);
+pinMode(10, OUTPUT);
+pinMode(11, OUTPUT);
+digitalWrite(2,1);
+digitalWrite(3,1);
+digitalWrite(4,1);
+digitalWrite(5,1);
+digitalWrite(6,1);
+digitalWrite(7,1);
+digitalWrite(8,1);
+digitalWrite(9,1);
+digitalWrite(10,1);
+digitalWrite(11,1);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+}
+
+#Pour detecter une frequence et allumer une led :
+
+#include "arduinoFFT.h"
+
+arduinoFFT FFT;
+
+#define CHANNEL A0
+
+const uint16_t samples = 128; //This value MUST ALWAYS be a power of 2
+const double samplingFrequency = 2000; //Hz, must be less than 10000 due to ADC
+
+unsigned int sampling_period_us;
+unsigned long microseconds;
+
+double vReal[samples];
+double vImag[samples];
+
+#define SCL_INDEX 0x00
+#define SCL_TIME 0x01
+#define SCL_FREQUENCY 0x02
+#define SCL_PLOT 0x03
+
+
+
+void setup() {
+  for (int i = 2 ; i <= 10; i++){
+    pinMode(i, OUTPUT);
+  }
+  // put your setup code here, to run once:
+  sampling_period_us = round(1000000*(1.0/samplingFrequency));
+  Serial.begin(115200);
+  while(!Serial);
+  Serial.println("Ready");
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+    microseconds = micros();
+  for(int i=0; i<samples; i++)
+  {
+      vReal[i] = analogRead(CHANNEL);
+      vImag[i] = 0;
+      while(micros() - microseconds < sampling_period_us){
+        //empty loop
+      }
+      microseconds += sampling_period_us;
+  }
+  FFT = arduinoFFT(vReal, vImag, samples, samplingFrequency); /* Create FFT object */
+  /* Print the results of the sampling according to time */
+  FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);  /* Weigh data */
+  FFT.Compute(FFT_FORWARD); /* Compute FFT */
+  FFT.ComplexToMagnitude(); /* Compute magnitudes */
+
+  
+  double x = FFT.MajorPeak();
+  Serial.println(x, 6); //Print out what frequency is the most dominant.
+
+  if(x>=144&&x<=153){digitalWrite(2, HIGH);delay(400);digitalWrite(2, LOW);}
+  else if(x>=154&&x<=169){digitalWrite(3, HIGH);delay(400);digitalWrite(3, LOW);}
+  else if(x>=170&&x<=178){digitalWrite(4, HIGH);delay(400);digitalWrite(4, LOW);}
+  else if(x>=179&&x<=210){digitalWrite(5, HIGH);delay(400);digitalWrite(5, LOW);}
+  else if(x>=211&&x<=239){digitalWrite(6, HIGH);delay(400);digitalWrite(6, LOW);}
+  else if(x>=240&&x<=260){digitalWrite(7, HIGH);delay(400);digitalWrite(7, LOW);}
+  else if(x>=261&&x<=267){digitalWrite(8, HIGH);delay(400);digitalWrite(8, LOW);}
+  else if(x>=268&&x<=299){digitalWrite(9, HIGH);delay(400);digitalWrite(9, LOW);}
+  else if(x>=300&&x<=334){digitalWrite(10, HIGH);delay(400);digitalWrite(10, LOW);}
+  
+  
+}
+
+
